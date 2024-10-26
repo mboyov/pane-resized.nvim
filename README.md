@@ -20,21 +20,29 @@
   </p>
 </div>
 
+---
+
+Pane Resizer is a Neovim plugin that automates pane resizing to optimize workspace layouts. With Pane Resizer, you can keep specific windows like `NvimTree` at a fixed width, distribute space evenly among inactive panes, and configure custom resizing for the focused pane.
+
 ## Features
 
 - **Automatic Pane Resizing**: Automatically resizes the focused pane to a user-defined percentage.
-- **NvimTree Handling**: Keeps NvimTree at a fixed width, even when switching focus.
+- **NvimTree Handling**: Keeps `NvimTree` at a fixed width, even when switching focus.
 - **Floating Windows Exclusion**: Ignores floating windows during pane resizing.
+- **Generic Support for Fixed Windows**: Define custom fixed-width windows (e.g., Trouble) using configuration patterns.
 
 ## Why use this?
 
-- **Efficiency**: Dynamically resize panes to optimize your workflow.
-- **Customization**: Easily configure pane sizes and NvimTree width.
-- **Compatibility**: Works seamlessly with floating windows and Neovim layouts.
+- **Efficiency**: Dynamically resize panes to enhance workflow by focusing on essential windows.
+- **Customization**: Offers flexible settings for the size of focused windows, `NvimTree`, and other panes.
+- **Compatibility**: Designed to work seamlessly with floating windows and any custom fixed-width windows you define, keeping layouts intact.
 
 ## Installation & Configuration
 
-1. **Installation**:
+### 1. Installation
+
+Using your preferred plugin manager:
+
 ```lua
 -- Using LazyVim
 return {
@@ -44,32 +52,16 @@ return {
       require('pane_resizer').setup({
         NVIMTREE_WIDTH = 40,              -- Set NvimTree width (default is 30)
         FOCUSED_WIDTH_PERCENTAGE = 0.5,   -- Resize focused window to 50% (default is 60%)
+        fixed_windows = {                 -- Define custom fixed-width windows
+          { pattern = "Trouble", width_percentage = 0.4 }
+        }
       })
     end,
   },
 }
 ```
 
-```lua
--- Using Packer
-use {
-  'mboyov/pane-resizer.nvim',
-  config = function()
-    require('pane_resizer').setup({
-      NVIMTREE_WIDTH = 40,              -- Set NvimTree width (default is 30)
-      FOCUSED_WIDTH_PERCENTAGE = 0.5,   -- Resize focused window to 50% (default is 60%)
-    })
-  end
-}
-```
-2. **Uninstall**:
-
-```bash
-# Example for Packer:
-:PackerClean
-```
-
-3. **Use Cases**:
+### 2. **Use Cases**:
 
 - Users who work with multiple splits and need a focused window to occupy a larger portion of the screen.
 - Users who want to keep NvimTree at a fixed width.

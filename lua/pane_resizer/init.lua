@@ -1,84 +1,48 @@
-local api = vim.api
+-- init.lua
+-- Entry point for the Pane Resizer plugin, setting up user configuration and auto commands
+
+local config = require("pane_resizer.config")
+local resize = require("pane_resizer.resize")
+local utils = require("pane_resizer.utils")
 
 local M = {}
 
--- Default values for NvimTree width and the focused buffer percentage
-M.NVIMTREE_WIDTH = 30 -- You can adjust this value as needed
-M.FOCUSED_WIDTH_PERCENTAGE = 0.6 -- Set the focused buffer to 60% of the available width
-
--- Function to resize the focused pane only, excluding NvimTree and keeping other panes unchanged
-function M.resize_focused_pane()
-	local current_win = api.nvim_get_current_win()
-	local total_width = api.nvim_get_option("columns")
-	local windows = api.nvim_tabpage_list_wins(0) -- Get all windows in the current tab
-	local non_floating_windows = {}
-	local nvimtree_open = false
-
-	-- Filter out floating windows and identify NvimTree
-	for _, win in ipairs(windows) do
-		local bufname = api.nvim_buf_get_name(api.nvim_win_get_buf(win))
-		local win_config = api.nvim_win_get_config(win)
-
-		-- Identify NvimTree and exclude it from the resizing
-		if bufname:match("NvimTree_") then
-			nvimtree_win = win
-		elseif win_config.relative == "" then -- Non-floating windows
-			table.insert(non_floating_windows, win)
-		end
-	end
-
-	-- If NvimTree is the current window or there are no non-floating windows, skip resizing
-	if current_win == nvimtree_win or #non_floating_windows < 2 then
-		return
-	end
-
-	-- Disable text wrapping to avoid text being squeezed for the current window
-	api.nvim_win_set_option(current_win, "wrap", false)
-
-	-- Adjust total width if NvimTree is open (ignore its width for other windows)
-	if nvimtree_win then
-		total_width = total_width - M.NVIMTREE_WIDTH
-	end
-
-	-- Calculate the width for the focused window based on the user-configured percentage
-	local focused_width = math.floor(total_width * M.FOCUSED_WIDTH_PERCENTAGE)
-
-	-- Resize the focused window
-	api.nvim_win_set_width(current_win, focused_width)
-end
-
--- Setup function for initializing the plugin
+-- Sets up the Pane Resizer plugin with user-defined or default options
+-- @param opts - optional table containing configuration overrides
 function M.setup(opts)
-	-- Allow users to override default settings
 	opts = opts or {}
-	M.NVIMTREE_WIDTH = opts.NVIMTREE_WIDTH or M.NVIMTREE_WIDTH
-	M.FOCUSED_WIDTH_PERCENTAGE = opts.FOCUSED_WIDTH_PERCENTAGE or M.FOCUSED_WIDTH_PERCENTAGE
+	config.NVIMTREE_WIDTH = opts.NVIMTREE_WIDTH or config.NVIMTREE_WIDTH
+	config.FOCUSED_WIDTH_PERCENTAGE = opts.FOCUSED_WIDTH_PERCENTAGE or config.FOCUSED_WIDTH_PERCENTAGE
+	config.fixed_windows = opts.fixed_windows or config.fixed_windows
 
-	-- Automatically resize the focused pane only, ignoring NvimTree and floating windows
-	api.nvim_create_autocmd("WinEnter", {
-		group = api.nvim_create_augroup("AutoResizePanes", { clear = true }),
+	-- Auto command: Resize panes when entering a new window
+	vim.api.nvim_create_autocmd("WinEnter", {
+		group = vim.api.nvim_create_augroup("AutoResizePanes", { clear = true }),
 		callback = function()
-			-- Check if the focused window is not NvimTree before resizing
-			local current_buf = api.nvim_buf_get_name(api.nvim_get_current_buf())
-			local is_nvimtree = current_buf:match("NvimTree_")
-
-			-- Only resize if the buffer is not NvimTree
-			if not is_nvimtree then
-				M.resize_focused_pane()
+			local current_buf = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
+			if not current_buf:match("NvimTree_") then
+				resize.resize_focused_pane()
 			end
 		end,
 	})
 
-	-- Ensure NvimTree keeps its fixed width when leaving focus
-	api.nvim_create_autocmd("WinLeave", {
+	-- Auto command: Enforce fixed NvimTree width when Neovim's window layout changes
+	vim.api.nvim_create_autocmd("VimResized", {
+		group = vim.api.nvim_create_augroup("EnforceNvimTreeWidth", { clear = true }),
+		callback = function()
+			for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+				if utils.is_buffer_name(win, "NvimTree_") then
+					vim.api.nvim_win_set_width(win, config.NVIMTREE_WIDTH)
+				end
+			end
+		end,
+	})
+
+	-- Auto command: Disable text wrap for all newly created windows
+	vim.api.nvim_create_autocmd("WinNew", {
 		pattern = "*",
 		callback = function()
-			local current_buf = api.nvim_buf_get_name(api.nvim_get_current_buf())
-			if current_buf:match("NvimTree_") then
-				-- Reset NvimTree's width to a fixed value when losing focus
-				local nvimtree_win = api.nvim_get_current_win()
-				api.nvim_win_set_width(nvimtree_win, M.NVIMTREE_WIDTH)
-			end
+			utils.disable_wrap(0)
 		end,
 	})
 end
