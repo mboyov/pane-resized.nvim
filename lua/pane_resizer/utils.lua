@@ -20,4 +20,13 @@ function M.disable_wrap(win)
 	api.nvim_win_set_option(win, "wrap", false)
 end
 
+-- Determines if a window should be excluded from resizing (e.g., floating or special windows)
+-- @param win - the window ID
+-- @return boolean - true if the window should be excluded
+function M.should_exclude_window(win)
+	local win_config = api.nvim_win_get_config(win)
+	local bufname = api.nvim_buf_get_name(api.nvim_win_get_buf(win))
+	return win_config.relative ~= "" or bufname:match("TelescopePrompt")
+end
+
 return M
