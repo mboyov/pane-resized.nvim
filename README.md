@@ -82,4 +82,4 @@ Distributed under the MIT License. See LICENSE for more information.
 [issues-shield]: https://img.shields.io/github/issues/mboyov/pane-resizer.nvim.svg?style=for-the-badge
 [issues-url]: https://github.com/mboyov/pane-resizer.nvim/issues
 [license-shield]: https://img.shields.io/github/license/mboyov/pane-resizer.nvim.svg?style=for-the-badge
-[license-url]: https://github.com/mboyov/pane-resizer.nvim/blob/main/LICENSE.txt
+[license-url]: https://github.com/mboyov/pane-resizer.nvim/blob/main/LICENSE

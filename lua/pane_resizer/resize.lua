@@ -10,6 +10,12 @@ local M = {}
 -- Main function to resize only the focused window, enforcing fixed width for NvimTree
 function M.resize_focused_pane()
 	local current_win = api.nvim_get_current_win()
+
+	-- Skip resizing for floating windows
+	if utils.should_exclude_window(current_win) then
+		return
+	end
+
 	local total_width = api.nvim_get_option("columns")
 	local nvimtree_win = nil
 
